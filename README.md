@@ -1,2 +1,3 @@
 # zJsonEdit
-JSON editor in ABAP
+JSON editor for SAP GUI.
+Code written in ABAP.
