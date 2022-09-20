@@ -54,11 +54,13 @@ CLASS ltc_main DEFINITION
   PRIVATE SECTION.
     METHODS string FOR TESTING RAISING cx_static_check.
     METHODS structure FOR TESTING RAISING cx_static_check.
+    METHODS table FOR TESTING RAISING cx_static_check.
     METHODS setup.
     DATA: node_elem_base         TYPE ltd_tree_control=>ty_node,
           node_elem_child_base   TYPE ltd_tree_control=>ty_node,
           node_struct_base       TYPE ltd_tree_control=>ty_node,
           node_struct_child_base TYPE ltd_tree_control=>ty_node,
+          node_table_base        TYPE ltd_tree_control=>ty_node,
           item_base              TYPE treemcitem.
 ENDCLASS.
 CLASS ltc_main IMPLEMENTATION.
@@ -67,6 +69,7 @@ CLASS ltc_main IMPLEMENTATION.
     node_elem_child_base = VALUE #( BASE node_elem_base relationship = cl_column_tree_model=>relat_last_child ).
     node_struct_base = VALUE #( image = 'ICON_STRUCTURE' ).
     node_struct_child_base = VALUE #( BASE node_struct_base relationship = cl_column_tree_model=>relat_last_child ).
+    node_table_base = VALUE #( image = 'ICON_LIST' ).
     item_base = VALUE #( item_name = 'C1' class = cl_column_tree_model=>item_class_text ).
   ENDMETHOD.
   METHOD string.
@@ -90,5 +93,18 @@ CLASS ltc_main IMPLEMENTATION.
               ( VALUE #( BASE node_struct_base     node_key = '1' relative_node_key = ''  item_table = VALUE #( ( VALUE #( BASE item_base text = 'object' ) ) ) ) )
               ( VALUE #( BASE node_elem_child_base node_key = '2' relative_node_key = '1' item_table = VALUE #( ( VALUE #( BASE item_base text = '"str":"text"' ) ) ) ) )
               ( VALUE #( BASE node_elem_child_base node_key = '3' relative_node_key = '1' item_table = VALUE #( ( VALUE #( BASE item_base text = '"num":1' ) ) ) ) ) ) ).
+  ENDMETHOD.
+  METHOD table.
+    DATA(cut) = zcl_jsonedit=>create( ).
+    DATA(tree) = NEW ltd_tree_control( ).
+    cut->load_from_string( json = '[1,{"num":1}]' ).
+    cut->build_tree( tree ).
+    cl_abap_unit_assert=>assert_equals(
+        act = tree->nodes
+        exp = VALUE ltd_tree_control=>ty_nodes(
+              ( VALUE #( BASE node_table_base        node_key = '1' relative_node_key = ''  item_table = VALUE #( ( VALUE #( BASE item_base text = 'array' ) ) ) ) )
+              ( VALUE #( BASE node_elem_child_base   node_key = '2' relative_node_key = '1' item_table = VALUE #( ( VALUE #( BASE item_base text = '1' ) ) ) ) )
+              ( VALUE #( BASE node_STRUCT_child_base node_key = '3' relative_node_key = '1' item_table = VALUE #( ( VALUE #( BASE item_base text = 'object' ) ) ) ) )
+              ( VALUE #( BASE node_elem_child_base   node_key = '4' relative_node_key = '3' item_table = VALUE #( ( VALUE #( BASE item_base text = '"num":1' ) ) ) ) ) ) ).
   ENDMETHOD.
 ENDCLASS.
